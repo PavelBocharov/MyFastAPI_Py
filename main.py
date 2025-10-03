@@ -1,8 +1,10 @@
 from dicttoxml import dicttoxml
 from fastapi import FastAPI
-from fastapi.responses import Response, JSONResponse, PlainTextResponse, HTMLResponse
+from fastapi.responses import Response, JSONResponse, PlainTextResponse, HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
+app.mount("/resources", StaticFiles(directory="resources"), name="resources")
 
 data = {
     'root': {
@@ -16,7 +18,20 @@ data = {
 }
 
 
-@app.get("/", response_class=PlainTextResponse)  # декоратор
+@app.get("/", response_class=FileResponse)
+def return_index_page():
+    return "src/index.html"  # file in {project_dir}/src/index.html
+    # return "./public/index.html" # file in {project_dir}/src/index.html
+
+
+@app.get("/file/{name}-{type}")
+def download_file(name, type):
+    return FileResponse("resources/for_download/31727044.jpg",
+                        filename=name + "." + type,
+                        media_type="application/octet-stream")
+
+
+@app.get("/text", response_class=PlainTextResponse)  # декоратор
 def read_root():
     # ERROR - нужно возвращать именно строку
     # return {
@@ -29,13 +44,15 @@ def read_root():
             "API type: GET</br>"
             "Content type: text")
 
-@app.post("/")
+
+@app.get("/html")
 def read_root():
     html_content = ("<h2>HTML + POST >>> Hello, Marolok!</h2><br>"
                     "Message: Hello, Marolok!</br>"
                     "API type: GET</br>"
                     "Content type: HTML")
     return HTMLResponse(content=html_content)
+
 
 @app.get("/get/json")
 def get_json():
