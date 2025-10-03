@@ -1,5 +1,5 @@
 # MarFastAPI
-Testing project for learning Python, FastAPI and pipenv.
+Testing project for learning **Python**, **FastAPI** and **pipenv**.
 
 ## Start project
 1) Install `pipenv`

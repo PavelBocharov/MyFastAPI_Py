@@ -6,6 +6,7 @@ name = "MarFastAPI"
 [packages]
 fastapi = "*"
 uvicorn = "*"
+dicttoxml = "*"
 
 [dev-packages]
 
