@@ -3,14 +3,18 @@ Testing project for learning **Python**, **FastAPI** and **pipenv**.
 
 ## Start project
 1) Install `pipenv`
-    ``` bash
-    pip install pipenv
-    ```
+   ``` bash
+   pip install pipenv
+   ```
 2) Install dependencies
-    ```bash
-    pipenv install
-    ```
+   ```bash
+   pipenv install
+   ```
 3) Start project
-    ``` bash 
-    uvicorn main:app --reload
-    ```
+   ``` bash 
+   uvicorn main:app --reload
+   ```
+   _or_
+   ``` bash
+   pipenv run uvicorn main:app --reload
+   ```

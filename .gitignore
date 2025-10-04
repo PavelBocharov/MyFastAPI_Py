@@ -1,3 +1,4 @@
 /.idea/
 /MyFastAPI_Py.iml
 /Pipfile.lock
+*.log
