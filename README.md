@@ -1,7 +1,7 @@
-# MarFastAPI
+# 🌐 MarFastAPI
 Testing project for learning **Python**, **FastAPI** and **pipenv**.
 
-## Start project
+## 🟢 Start project
 1) Install `pipenv`
    ``` bash
    pip install pipenv

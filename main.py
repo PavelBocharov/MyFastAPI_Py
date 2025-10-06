@@ -1,10 +1,12 @@
+import functools
+import logging
+
 from dicttoxml import dicttoxml
-from fastapi import FastAPI
+from fastapi import FastAPI, Path, Query, status
 from fastapi.responses import Response, JSONResponse, PlainTextResponse, HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 
-import logging
-import functools
+# TODO next https://metanit.com/python/fastapi/1.10.php
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -17,7 +19,8 @@ logging.basicConfig(
 )
 
 app = FastAPI()
-app.mount("/resources", StaticFiles(directory="resources"), name="resources")
+app.mount("/resources", StaticFiles(directory="resources"), name="resources") # https://metanit.com/python/fastapi/1.9.php
+app.mount("/", StaticFiles(directory="src", html=True)) # mount index.html
 
 data = {
     'root': {
@@ -43,19 +46,62 @@ def api_logger(f):
 
     return wrapper
 
+# Mount index.html in line: 21
+# @app.get("/", response_class=FileResponse)
+# @api_logger
+# def return_index_page():
+#     return "src/index.html"  # file in {project_dir}/src/index.html
 
-@app.get("/", response_class=FileResponse)
+
+@app.get("/search/{file_name}", status_code=status.HTTP_200_OK)
 @api_logger
-def return_index_page():
-    return "src/index.html"  # file in {project_dir}/src/index.html
+def search_file_by_name(response: Response, file_name: str = Path()):
+    match file_name:
+        case "ufo":
+            return FileResponse("resources/for_download/ufo.jpeg", filename="ufo.jpeg",
+                                media_type="application/octet-stream")
+        case "cover":
+            return FileResponse("resources/video1/cover.png", filename="cover.png",
+                                media_type="application/octet-stream")
+        case _:
+            response.status_code = status.HTTP_204_NO_CONTENT
+            # return JSONResponse(content={'msg': 'File not find.'}, status_code=status.HTTP_204_NO_CONTENT)
+            # >>> h11._util.LocalProtocolError: Too much data for declared Content-Length
+            return JSONResponse(content={'msg': f"File '{file_name}' not find."})
 
 
-@app.get("/file/{n}-{t}")
+@app.get("/file")
 @api_logger
-def download_file(n, t):
+def download_query_file(name: str | None = Query(pattern="([a-zA-Z0-9_-]+)", default=None, min_length=1),
+                        extension: str | None = Query(pattern="jpg|jpeg|png|bmp", default=None, min_length=3,
+                                                      max_length=4)):
+    if name is None or extension is None:
+        return FileResponse("resources/for_download/ufo.jpeg", filename="ufo.jpeg",
+                            media_type="application/octet-stream")
+    else:
+        return FileResponse("resources/for_download/ufo.jpeg",
+                            filename=name + "." + extension.lower(),
+                            media_type="application/octet-stream")
+
+
+@app.get("/file/{name}-{extension}")
+@api_logger
+def download_path_file(name: str = Path(pattern="([a-zA-Z0-9_-]+)", min_length=1),
+                       extension: str = Path(pattern="jpg|jpeg|png|bmp", min_length=3, max_length=4)):
     return FileResponse("resources/for_download/ufo.jpeg",
-                        filename=n + "." + t,
+                        filename=name + "." + extension.lower(),
                         media_type="application/octet-stream")
+
+
+@app.get("/your/req/{test_p}")  # /your/req/my_req?test_q=12&test_q=awd
+@api_logger
+def pars_query(test_p: str = Path(),
+               test_q: list[str] = Query()):
+    json = {
+        'path': test_p,
+        'query': test_q
+    }
+    return JSONResponse(content=json)
 
 
 @app.get("/text", response_class=PlainTextResponse)  # декоратор
