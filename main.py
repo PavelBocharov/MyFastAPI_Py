@@ -2,11 +2,9 @@ import functools
 import logging
 
 from dicttoxml import dicttoxml
-from fastapi import FastAPI, Path, Query, status
+from fastapi import FastAPI, Path, Query, status, Body
 from fastapi.responses import Response, JSONResponse, PlainTextResponse, HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
-
-# TODO next https://metanit.com/python/fastapi/1.10.php
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -20,7 +18,6 @@ logging.basicConfig(
 
 app = FastAPI()
 app.mount("/resources", StaticFiles(directory="resources"), name="resources") # https://metanit.com/python/fastapi/1.9.php
-app.mount("/", StaticFiles(directory="src", html=True)) # mount index.html
 
 data = {
     'root': {
@@ -46,11 +43,10 @@ def api_logger(f):
 
     return wrapper
 
-# Mount index.html in line: 21
-# @app.get("/", response_class=FileResponse)
-# @api_logger
-# def return_index_page():
-#     return "src/index.html"  # file in {project_dir}/src/index.html
+@app.get("/", response_class=FileResponse)
+@api_logger
+def return_index_page():
+    return "src/index.html"  # file in {project_dir}/src/index.html
 
 
 @app.get("/search/{file_name}", status_code=status.HTTP_200_OK)
@@ -151,3 +147,23 @@ def get_xml():
     xml_data = dicttoxml(data)
     xml_string = xml_data.decode('utf-8')
     return Response(content=xml_string, media_type="application/xml")
+
+
+@app.post("/hello")
+# Version 1
+# def hello(data = Body()):
+#     name = data["name"]
+#     age = data["age"]
+#     return {"message": f"{name}, ваш возраст - {age}"}
+# ---------
+# Version 2 - get field
+# @app.post("/hello")
+# def hello(name = Body(embed=True), age = Body(embed=True)):
+#     return {"message": f"{name}, ваш возраст - {age}"}
+# ---------
+# Version 3 - with rules
+def hello(name:str  = Body(embed=True, min_length=3, max_length=20),
+          age: int = Body(embed=True, ge=18, lt=111)):
+    return {"message": f"{name}, ваш возраст - {age}"}
+
+# TODO https://metanit.com/python/fastapi/1.11.php
